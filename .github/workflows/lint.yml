@@ -19,7 +19,7 @@ jobs:
       - name: Lint api
         uses: github/super-linter@v4
         env:
-          VALIDATE_ALL_CODEBASE: false
+          #VALIDATE_ALL_CODEBASE: false
           VALIDATE_OPENAPI: true
           DEFAULT_BRANCH: master
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
