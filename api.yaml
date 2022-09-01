@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  title: Hortus
-  description: Culture Planner
+  title: hortus
+  description: Culture planner
   contact:
     name: Alexandre Lamberty
     email: mail@alexandrelamberty.com
@@ -9,14 +9,9 @@ info:
   license:
     name: MIT License
     url: "https://opensource.org/licenses/MIT"
-  version: 0.0.1
+  version: "1.0"
 servers:
-  - url: "https://dev.api.hortus.lan"
-    description: Development server
-  - url: "https://staging.api.hortus.lan"
-    description: Staging server
-  - url: "https://api.hortus.lan"
-    description: Production server
+  - url: "http://localhost:3333"
 paths:
   /plants:
     get:
@@ -210,18 +205,6 @@ paths:
       parameters:
         - $ref: "#/components/parameters/listSkip"
         - $ref: "#/components/parameters/listLimit"
-  "/cultures/{cultureId}/{phase}/{action}":
-    parameters:
-      - $ref: "#/components/parameters/cultureId"
-      - $ref: "#/components/parameters/phaseName"
-      - $ref: "#/components/parameters/phaseAction"
-    get:
-      summary: Control Phase
-      operationId: get-cultures-cultureId-phase-action
-      responses:
-        "200":
-          description: OK
-      description: Allow to control a culture phase
   "/users/{userId}":
     parameters:
       - $ref: "#/components/parameters/userId"
@@ -372,3 +355,844 @@ components:
   schemas:
     Plant:
       title: Plant
+      x-stoplight:
+        id: g45ci59xg38sz
+      type: object
+      description: Represent a botanical classification of a plant
+      x-examples: {}
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+        name:
+          type: string
+          example: Carrot
+        family:
+          type: string
+          example: Apiaceae
+        genus:
+          type: string
+          example: Daucus
+        species:
+          type: string
+          example: carota
+        subspecies:
+          type: string
+          example: hispanicus
+        variant:
+          type: string
+          example: linearis
+      required:
+        - id
+        - name
+        - family
+        - genus
+    Seed:
+      title: Seed
+      x-stoplight:
+        id: 3auaw22iq0xx6
+      type: object
+      description: A plant seed culture information
+      properties:
+        id:
+          type: string
+          description: A unique identifier
+          format: uuid
+        name:
+          type: string
+          description: The seed name
+        plant:
+          $ref: "#/components/schemas/Plant"
+        description:
+          type: string
+        type:
+          type: string
+          enum:
+            - bulb
+            - flower
+            - fruit
+            - herb
+            - leaf
+            - other
+            - root
+            - seed
+            - stem
+        image:
+          type: string
+          pattern: ¨.jpg
+          format: uuid
+        harvest:
+          type: array
+          items:
+            type: number
+        season:
+          type: string
+          enum:
+            - annual
+            - biennal
+            - perenial
+        frost:
+          type: string
+          example: tolerant
+          enum:
+            - tolerant
+            - non_tolerent
+        sun:
+          type: string
+          enum:
+            - full_sun
+            - shade
+        water:
+          type: string
+          enum:
+            - once_week
+            - twice_weed
+            - everyday
+        companions:
+          type: array
+          description: A list of benefical plants
+          items:
+            $ref: "#/components/schemas/Plant"
+        competitors:
+          type: array
+          description: A list of detrimental plants
+          items:
+            $ref: "#/components/schemas/Plant"
+        seeding:
+          $ref: "#/components/schemas/Seeding"
+        transplanting:
+          $ref: "#/components/schemas/Transplanting"
+        planting:
+          $ref: "#/components/schemas/Planting"
+        harvesting:
+          $ref: "#/components/schemas/Harvesting"
+        spacing:
+          type: number
+          description: The distance between plants in centimeters
+        rows:
+          type: number
+          description: The distance bewteen rows in centimeters
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - plant
+        - type
+    Seeding:
+      title: Seeding
+      x-stoplight:
+        id: f8y13xjhw0zo4
+      type: object
+      description: The approximate period for seeding and the germination duration
+      properties:
+        start:
+          type: number
+          description: The month to start seeding
+          minimum: 1
+          maximum: 12
+          example: 1
+        end:
+          type: number
+          description: The month to end seeding
+          minimum: 1
+          maximum: 12
+          example: 2
+        germination:
+          type: number
+          description: The approximate duration in days untill germination
+          minimum: 1
+          maximum: 30
+          example: 20
+      required:
+        - start
+        - end
+        - germination
+    Transplanting:
+      title: Transplanting
+      x-stoplight:
+        id: f8y13xjhw0zo4
+      type: object
+      description: The approximate period for transplanting and the duration
+      properties:
+        start:
+          type: number
+          description: The month to start transplanting
+          maximum: 12
+          minimum: 0
+          example: 0
+        end:
+          type: number
+          description: The month to end transplanting
+          maximum: 12
+          example: 0
+          minimum: 0
+        duration:
+          type: number
+          description: The approximate duration in days until you can plant
+          maximum: 365
+          minimum: 0
+          example: 0
+      required:
+        - start
+        - end
+        - duration
+    Planting:
+      title: Planting
+      x-stoplight:
+        id: f8y13xjhw0zo4
+      type: object
+      description: The approximate period for planting and the duration until harvest
+      properties:
+        start:
+          type: number
+          description: The month to start planting
+          minimum: 1
+          maximum: 12
+          example: 3
+        end:
+          type: number
+          description: |
+            The month to end planting
+          minimum: 1
+          maximum: 12
+          example: 4
+        maturity:
+          type: number
+          description: The duration in days until the maturity of the plant
+          example: 60
+      required:
+        - start
+        - end
+    Harvesting:
+      title: Harvesting
+      x-stoplight:
+        id: f8y13xjhw0zo4
+      type: object
+      description: The approximate period to harvest a plant
+      properties:
+        start:
+          type: number
+          description: The month to start harvesting
+          minimum: 1
+          maximum: 12
+          example: 6
+        end:
+          type: number
+          description: The month to end harvesting
+          example: 8
+          minimum: 1
+          maximum: 12
+      required:
+        - start
+        - end
+    Culture:
+      title: Culture
+      x-stoplight:
+        id: c8ecolqm8mdl9
+      type: object
+      description: A culture represent a seed that is in the process of being cultivated
+      properties:
+        id:
+          type: string
+          description: A unique identifier
+          format: uuid
+          example: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+        name:
+          type: string
+          example: Raised bed cabin
+        seed:
+          $ref: "#/components/schemas/Seed"
+        seeding:
+          $ref: "#/components/schemas/SeedingPhase"
+        transplanting:
+          $ref: "#/components/schemas/TransplantingPhase"
+        planting:
+          $ref: "#/components/schemas/PlantingPhase"
+        harvesting:
+          $ref: "#/components/schemas/HarvestingPhase"
+      required:
+        - id
+        - name
+        - seed
+        - seeding
+        - transplanting
+        - planting
+        - harvesting
+    Notification:
+      title: Notification
+      x-stoplight:
+        id: 1fo5ipr1gn0bp
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+        culture:
+          $ref: "#/components/schemas/Culture"
+        name:
+          type: string
+          description: The name of the notification
+          example: Germination
+        due:
+          type: string
+          format: date
+          example: "2019-08-24"
+    User:
+      title: User
+      x-stoplight:
+        id: hhde7bext2prt
+      type: object
+      x-examples: {}
+      description: Represent an user account on the system
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The user unique identifier
+        email:
+          type: string
+          example: john.smith@mail.org
+          description: The user email
+          format: email
+        password:
+          type: string
+          example: john@34cloud
+          format: password
+          description: The user password
+        status:
+          type: string
+          enum:
+            - pending
+            - disabled
+            - confirmed
+          example: confirmed
+          description: The user status
+      required:
+        - id
+        - email
+        - password
+        - status
+    Sensor:
+      title: Sensor
+      x-stoplight:
+        id: 67e5766q8mde0
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier
+          format: uuid
+        name:
+          type: string
+          description: The name of the sensor
+          example: Greenhouse
+        ip:
+          type: string
+          description: The current ip address of the device
+          format: ipv4
+        macaddress:
+          type: string
+          description: The mac-address of the device
+        mesurements:
+          type: array
+          items:
+            type: object
+      required:
+        - name
+        - ip
+        - macaddress
+    SeedingPhase:
+      title: SeedingPhase
+      x-stoplight:
+        id: orbmqbmbnjma5
+      type: object
+      description: ""
+      properties:
+        status:
+          type: string
+          enum:
+            - pending
+            - started
+            - skipped
+            - stopped
+          example: started
+        location:
+          type: string
+          enum:
+            - indoor
+            - outdoor
+            - frame
+            - greenhouse
+          example: greenhouse
+        quantity:
+          type: number
+          maximum: 1000
+          minimum: 1
+          example: 5
+        soil:
+          type: string
+          enum:
+            - neutral
+        startedAt:
+          type: string
+          description: The date the phase was started
+          format: date
+        skippedAt:
+          type: string
+          description: The date the phase was skipped
+          format: date
+        stoppedAt:
+          type: string
+          description: The date the phase was stopped
+          format: date
+      required:
+        - status
+        - location
+        - quantity
+    TransplantingPhase:
+      title: TransplantingPhase
+      x-stoplight:
+        id: orbmqbmbnjma5
+      type: object
+      description: ""
+      properties:
+        status:
+          type: string
+          enum:
+            - pending
+            - started
+            - skipped
+            - stopped
+          example: started
+        location:
+          type: string
+          enum:
+            - indoor
+            - outdoor
+            - frame
+            - greenhouse
+          example: frame
+        quantity:
+          type: number
+          maximum: 1000
+          minimum: 1
+          example: 5
+        soil:
+          type: string
+          enum:
+            - neutral
+        startedAt:
+          type: string
+          description: The date the phase was started
+          format: date
+        skippedAt:
+          type: string
+          description: The date the phase was skipped
+          format: date
+        stoppedAt:
+          type: string
+          description: The date the phase was stopped
+          format: date
+      required:
+        - status
+        - location
+        - quantity
+    PlantingPhase:
+      title: PlantingPhase
+      x-stoplight:
+        id: orbmqbmbnjma5
+      type: object
+      description: ""
+      properties:
+        status:
+          type: string
+          enum:
+            - pending
+            - started
+            - skipped
+            - stopped
+          example: started
+        location:
+          type: string
+          enum:
+            - indoor
+            - outdoor
+            - frame
+            - greenhouse
+          example: outdoor
+        quantity:
+          type: number
+          maximum: 1000
+          minimum: 1
+          example: 5
+        soil:
+          type: string
+          enum:
+            - neutral
+        startedAt:
+          type: string
+          description: The date the phase was started
+          format: date
+        skippedAt:
+          type: string
+          description: The date the phase was skipped
+          format: date
+        stoppedAt:
+          type: string
+          description: The date the phase was stopped
+          format: date
+      required:
+        - status
+        - location
+        - quantity
+    HarvestingPhase:
+      title: HarvestingPhase
+      x-stoplight:
+        id: orbmqbmbnjma5
+      type: object
+      description: ""
+      properties:
+        status:
+          type: string
+          enum:
+            - pending
+            - started
+            - skipped
+            - stopped
+          example: started
+        quantity:
+          type: number
+          maximum: 1000
+          minimum: 1
+          example: 5
+        startedAt:
+          type: string
+          description: The date the phase was started
+          format: date
+        skippedAt:
+          type: string
+          description: The date the phase was skipped
+          format: date
+        stoppedAt:
+          type: string
+          description: The date the phase was stopped
+          format: date
+      required:
+        - status
+        - quantity
+  parameters:
+    seedId:
+      name: seedId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The Seed unique identifier
+    plantId:
+      name: plantId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The Plant unique identifier
+    cultureId:
+      name: cultureId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The Culture unique identifier
+    userId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The User unique identifier
+    notificationId:
+      name: notificationId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The Notification unique identifier
+    listSkip:
+      name: skip
+      in: query
+      schema:
+        type: number
+        example: 10
+      description: The number of items to skip
+    listLimit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: number
+        example: 10
+      description: The limit of item to return
+    orderBy:
+      name: orderBy
+      in: query
+      schema:
+        type: string
+        example: title
+        default: name
+      description: The field to order the list
+  requestBodies:
+    CreateSeedRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              plants:
+                type: string
+              description:
+                type: string
+              "":
+                type: string
+            required:
+              - name
+              - plants
+      description: ""
+    UpdateSeedRequest:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Seed"
+    LoginUserRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                example: john.smith@mail.org
+                format: email
+              password:
+                type: string
+                example: Abc@666#
+                minLength: 8
+                maxLength: 256
+            required:
+              - email
+              - password
+          examples: {}
+    RegisterUserRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+              password:
+                type: string
+              confirmPassword:
+                type: string
+          examples: {}
+    CreatePlantsRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: Carrot
+              name_fr:
+                type: string
+                example: Carotte
+              family:
+                type: string
+                example: Apiacea
+              genus:
+                type: string
+                example: Daucus
+              species:
+                type: string
+                example: carota
+              subspecies:
+                type: string
+              variant:
+                type: string
+            required:
+              - name
+              - name_fr
+              - family
+              - genus
+      description: ""
+    CreateCultureRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                description: The name of for the culture
+              seed:
+                type: string
+                format: uuid
+                description: The seed ID for the culture
+            required:
+              - seed
+      description: ""
+    UpdatePlantRequest:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Plant"
+    UpdateCultureRequest:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Culture"
+  responses:
+    GetSeedResponse:
+      description: A seed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Seed"
+    ListSeedsResponse:
+      description: A list of seed
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Seed"
+          examples: {}
+    GetCultureResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Culture"
+    ListCulturesResponse:
+      description: A list of culture
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Culture"
+        application/xml:
+          schema:
+            type: object
+            properties: {}
+      headers:
+        Pagination-Count:
+          schema:
+            type: number
+        Pagination-Page:
+          schema:
+            type: number
+        Pagination-Limit:
+          schema:
+            type: number
+    ListUsersResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/User"
+    RegisterUserResponse:
+      description: Signin request successful
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              user:
+                $ref: "#/components/schemas/User"
+          examples: {}
+    LoginUserResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+    ListPlantsResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Plant"
+          examples: {}
+    GetPlantResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Plant"
+    GetUserResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+              email:
+                type: string
+    ListSensorsResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Sensor"
+    ListNotificationResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              list:
+                $ref: "#/components/schemas/Notification"
+              count:
+                type: number
+  securitySchemes:
+    "12345":
+      name: token
+      type: apiKey
+      in: header
+      description: The token received from the login process
+tags:
+  - name: auth
+    description: Authentication service
+  - name: culture
+    description: Cultures service
+  - name: notification
+    description: Notification service
+  - name: plant
+    description: Plant service
+  - name: seed
+    description: Seeds service
+  - name: sensor
+    description: Sensor service
+  - name: user
+    description: Users
