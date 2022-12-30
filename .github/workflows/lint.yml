@@ -1,14 +1,12 @@
-name: Lint api
-
+name: Lint API specification
 on:
   push:
     branches-ignore: [master, main]
-    # Remove the line above to run when pushing to master
   pull_request:
     branches: [master, main]
   workflow_dispatch:
 jobs:
-  build:
+  lint:
     name: Lint Code Base
     runs-on: ubuntu-latest
     steps:
