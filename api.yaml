@@ -184,7 +184,7 @@ paths:
     delete:
       summary: Delete a Culture
       tags:
-        - Cutures
+        - Cultures
       operationId: delete-cultures-cultureId
       responses:
         "200":
@@ -211,7 +211,8 @@ paths:
         description: The Culture unique identifier
     patch:
       summary: ""
-      tags: Cultures
+      tags:
+        - Cultures
       operationId: patch-cultures-cultureId-phase
       responses:
         "200":
@@ -226,7 +227,8 @@ paths:
         description: The Culture unique identifier
     patch:
       summary: ""
-      tags: cultures
+      tags:
+        - Cultures
       operationId: patch-cultures-cultureId-harvesting-harvests
       responses:
         "200":
