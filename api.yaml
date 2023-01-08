@@ -10,6 +10,8 @@ info:
     name: MIT License
     url: "https://opensource.org/licenses/MIT"
   version: 0.0.1
+  x-logo:
+    url: "https://api.apis.guru/v2/cache/logo/https_twitter.com_zoom_us_profile_image.jpeg"
 servers:
   - url: "https://dev.api.hortus.lan"
     description: Development server
@@ -46,7 +48,7 @@ paths:
       operationId: post-plants
       description: Create a plant.
       requestBody:
-        $ref: "#/components/requestBodies/CreatePlantsRequest"
+        $ref: "#/components/requestBodies/CreatePlantRequest"
   "/plants/{plantId}":
     parameters:
       - $ref: "#/components/parameters/plantId"
@@ -167,7 +169,7 @@ paths:
           description: OK
       description: Create a new culture.
       requestBody:
-        $ref: "#/components/requestBodies/CreateCultureRequest"
+        $ref: "#/components/requestBodies/CreateCulture"
     parameters: []
   "/cultures/{cultureId}":
     parameters:
@@ -201,22 +203,17 @@ paths:
       description: Update a culture.
       requestBody:
         $ref: "#/components/requestBodies/UpdateCultureRequest"
-  "/cultures/{cultureId}/phase/":
+  "/cultures/{cultureId}/phase":
     parameters:
-      - name: cultureId
-        in: path
-        required: true
-        schema:
-          type: string
-        description: The Culture unique identifier
+      - $ref: "#/components/parameters/cultureId"
     patch:
-      summary: ""
+      summary: Update a Culture Phase state
       tags:
         - Cultures
       operationId: patch-cultures-cultureId-phase
-      responses:
-        "200":
-          description: OK
+      description: "Update the state of a culture phase, you can start, skip and stop it."
+      requestBody:
+        $ref: "#/components/requestBodies/UpdateCulturePhaseRequest"
   "/cultures/{cultureId}/harvesting/harvests":
     parameters:
       - name: cultureId
@@ -226,19 +223,20 @@ paths:
           type: string
         description: The Culture unique identifier
     patch:
-      summary: ""
+      summary: Update a Culture Harvests
       tags:
         - Cultures
       operationId: patch-cultures-cultureId-harvesting-harvests
       responses:
         "200":
           description: OK
+      description: Update the harvests made during the culture harvesting phase.
+      requestBody:
+        $ref: "#/components/requestBodies/UpdateCultureHarvestsRequest"
 components:
   schemas:
     Plant:
       title: Plant
-      x-stoplight:
-        id: g45ci59xg38sz
       type: object
       description: Represent a botanical classification of a plant
       x-examples: {}
@@ -293,8 +291,17 @@ components:
           example: Brassica rapa var. rapa
           description: Trinomial name of the plant
         common_names:
-          $ref: "#/components/schemas/Name"
           description: Common names of the plant
+          type: object
+          properties:
+            lang:
+              type: string
+              description: The language code (ISO 639-1)
+            "":
+              type: string
+              description: The common name of the plant
+          required:
+            - lang
         color:
           type: string
           description: A color associated with the plant
@@ -316,12 +323,12 @@ components:
         - family
         - genus
         - species
+        - binomial
+        - trinomial
         - createdAt
         - updatedAt
     Seed:
       title: Seed
-      x-stoplight:
-        id: 3auaw22iq0xx6
       type: object
       description: A seed is associated with a unique plant and provides details about cultivation of this plant.
       properties:
@@ -529,8 +536,6 @@ components:
         - rows
     Culture:
       title: Culture
-      x-stoplight:
-        id: c8ecolqm8mdl9
       type: object
       description: A culture represent a seed that is in the process of being cultivated.
       properties:
@@ -733,22 +738,6 @@ components:
         - harvesting
         - createdAt
         - updatedAt
-    Name:
-      title: Name
-      x-stoplight:
-        id: gtli21kmc1mkp
-      type: object
-      description: Common localized names used to identify a plant.
-      properties:
-        lang:
-          type: string
-          description: The language code (ISO 639-1)
-        name:
-          type: string
-          description: The common name of the plant
-      required:
-        - lang
-        - name
   parameters:
     seedId:
       name: seedId
@@ -771,20 +760,6 @@ components:
       schema:
         type: string
       description: The Culture unique identifier
-    userId:
-      name: userId
-      in: path
-      required: true
-      schema:
-        type: string
-      description: The User unique identifier
-    notificationId:
-      name: notificationId
-      in: path
-      required: true
-      schema:
-        type: string
-      description: The Notification unique identifier
     listSkip:
       name: skip
       in: query
@@ -808,30 +783,6 @@ components:
         example: title
         default: name
       description: The field to order the list
-    phaseAction:
-      name: action
-      in: path
-      required: true
-      schema:
-        type: string
-        enum:
-          - play
-          - skip
-          - stop
-          - resume
-      description: A phase action
-    phaseName:
-      name: phase
-      in: path
-      required: true
-      schema:
-        type: string
-        enum:
-          - seeding
-          - transplanting
-          - planting
-          - harvesting
-      description: A phase name
   requestBodies:
     CreateSeedRequest:
       content:
@@ -841,22 +792,239 @@ components:
             properties:
               name:
                 type: string
-              plants:
+                description: The name of the seed
+              plant:
                 type: string
+                format: uuid
+                description: The plant unique id associated to the seed
               description:
                 type: string
-              "":
+                description: A short description of the seed
+              harvest:
+                type: object
+                description: Estimated min/max duration in days bewteen sowing and harsting
+                required:
+                  - min
+                  - max
+                properties:
+                  min:
+                    type: number
+                    description: The minimum duration days
+                  max:
+                    type: number
+                    description: The maximum duration in days
+              type:
                 type: string
+                description: The type of plant
+              season:
+                type: string
+                description: Seasonality
+              frost:
+                type: string
+                description: Frost tolerance
+              sun:
+                type: string
+                description: Sun exposition
+              water:
+                type: string
+                description: Watering preferences
+              companions:
+                type: array
+                items:
+                  type: string
+                  format: uuid
+              competitors:
+                type: array
+                items:
+                  type: string
+                  format: uuid
+              sowing:
+                type: object
+                required:
+                  - start
+                  - end
+                  - germination
+                description: The approximate period for seeding and the germination duration
+                properties:
+                  start:
+                    type: number
+                    description: The month to start sowing
+                  end:
+                    type: number
+                    description: The month to end sowing
+                  germination:
+                    type: number
+                    description: The approximate duration in days untill germination
+              transplanting:
+                type: object
+                description: The approximate period for transplanting and the duration
+                required:
+                  - start
+                  - end
+                  - growth
+                properties:
+                  start:
+                    type: number
+                    description: The month to start transplanting
+                  end:
+                    type: number
+                    description: The month to end transplanting
+                  growth:
+                    type: number
+                    description: The approximate period for transplanting and the duration
+              planting:
+                type: object
+                description: The approximate period for planting and the duration until harvest
+                required:
+                  - start
+                  - end
+                  - maturity
+                properties:
+                  start:
+                    type: number
+                    description: The month to start planting
+                  end:
+                    type: number
+                    description: The month to end planting
+                  maturity:
+                    type: number
+                    description: The month to end planting
+              harvesting:
+                type: object
+                description: The approximate period to harvest a plant
+                required:
+                  - start
+                  - end
+                  - duration
+                properties:
+                  start:
+                    type: number
+                    description: The month to start harvesting
+                  end:
+                    type: number
+                    description: The month to end harvesting
+                  duration:
+                    type: number
+                    description: The duration of the harvest
+              spacing:
+                type: number
+                description: The distance between plants in centimeters
+              row:
+                type: number
+                description: The distance bewteen rows in centimeters
             required:
               - name
-              - plants
-      description: ""
+              - plant
+              - description
+              - harvest
+              - type
+              - season
+              - frost
+              - sun
+              - water
+              - sowing
+              - transplanting
+              - planting
+              - harvesting
+              - spacing
+              - row
+      description: Details about the seed to create.
     UpdateSeedRequest:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Seed"
-    CreatePlantsRequest:
+            type: object
+            properties:
+              plantId:
+                type: string
+              name:
+                type: string
+              description:
+                type: string
+              type:
+                type: string
+              image:
+                type: string
+              harvest:
+                type: object
+                properties:
+                  min:
+                    type: number
+                  max:
+                    type: number
+              season:
+                type: string
+              frost:
+                type: string
+              sun:
+                type: string
+              water:
+                type: string
+              companions:
+                type: array
+                items: {}
+              competitors:
+                type: string
+              sowing:
+                type: object
+                description: The approximate period for seeding and the germination duration
+                properties:
+                  start:
+                    type: number
+                    description: The month to start sowing
+                  end:
+                    type: number
+                    description: The month to end sowing
+                  germination:
+                    type: number
+                    description: The approximate duration in days untill germination
+              transplanting:
+                type: object
+                description: The approximate period for transplanting and the duration
+                properties:
+                  start:
+                    type: number
+                    description: The month to start transplanting
+                  end:
+                    type: number
+                    description: The month to end transplanting
+                  growth:
+                    type: number
+                    description: The approximate period for transplanting and the duration
+              planting:
+                type: object
+                description: The approximate period for planting and the duration until harvest
+                properties:
+                  start:
+                    type: number
+                    description: The month to start planting
+                  end:
+                    type: number
+                    description: The month to end planting
+                  maturity:
+                    type: number
+                    description: The month to end planting
+              harvesting:
+                type: object
+                description: The approximate period to harvest a plant
+                properties:
+                  start:
+                    type: number
+                    description: The month to start harvesting
+                  end:
+                    type: number
+                    description: The month to end harvesting
+                  duration:
+                    type: number
+                    description: The duration of the harvest
+              spacing:
+                type: number
+                description: The distance between plants in centimeters
+              row:
+                type: number
+                description: The distance bewteen rows in centimeters
+      description: Details about the seed to update.
+    CreatePlantRequest:
       content:
         multipart/form-data:
           schema:
@@ -868,26 +1036,69 @@ components:
               family:
                 type: string
                 example: Apiacea
+                description: The plant botany family
               genus:
                 type: string
                 example: Daucus
+                description: The plant botany genus
               species:
                 type: string
                 example: carota
+                description: The plant botany species
               subspecies:
                 type: string
-              variant:
+                description: The plant botany subspecies
+              variety:
                 type: string
+                description: The plant botany forma
+              forma:
+                type: string
+                description: The plant botany forma
+              cultivar:
+                type: string
+                description: The plant botany cultivar
+              hybrid:
+                type: string
+                description: The plant botany hybrid
               image:
                 type: string
                 format: binary
+              common_names:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    lang:
+                      type: string
+                      description: The language code (ISO 639-1)
+                    name:
+                      type: string
+                      description: A localized common name for the plant
+                  required:
+                    - lang
+                    - name
+              color:
+                type: string
+                description: Hex color
             required:
               - name
               - family
               - genus
               - species
-      description: ""
-    CreateCultureRequest:
+          examples: {}
+      description: Details about the plant to create.
+    CreateCulture:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              seed:
+                type: string
+                format: uuid
+                description: The seed unique id associated to the culture
+      description: Details about the culture to create.
+    UpdatePlantRequest:
       content:
         application/json:
           schema:
@@ -895,24 +1106,104 @@ components:
             properties:
               name:
                 type: string
-                description: The name of for the culture
-              seed:
+                description: The plant common name
+              family:
                 type: string
-                format: uuid
-                description: The seed ID for the culture
-            required:
-              - seed
-      description: ""
-    UpdatePlantRequest:
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Plant"
+                description: The plant family
+              genus:
+                type: string
+                description: The plant genus
+              species:
+                type: string
+                description: The plant species
+              subspecies:
+                type: string
+                description: The plant subspecies
+              variety:
+                type: string
+                description: The plant variety
+              forma:
+                type: string
+                description: The plant forma
+              cultivar:
+                type: string
+                description: The plant cultivar
+              hybrid:
+                type: string
+                description: The plant hybrid
+              common_names:
+                type: array
+                description: Common names of the plant
+                items:
+                  type: object
+                  properties:
+                    lang:
+                      type: string
+                      description: The language code (ISO 639-1)
+                    name:
+                      type: string
+                      description: The common name of the plant
+              color:
+                type: string
+                description: A color associated with the plant
+      description: Details about the plant to update.
     UpdateCultureRequest:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Culture"
+            type: object
+            properties:
+              seedId:
+                type: string
+                format: uuid
+      description: Details about the seed to update.
+    UpdateCulturePhaseRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                enum:
+                  - started
+                  - skipped
+                  - ended
+              soil:
+                type: string
+                enum:
+                  - add
+                  - remove
+              location:
+                type: string
+              quantity:
+                type: string
+            required:
+              - status
+      description: "Update one of the phase of a culture. A culture consists of 4 phase that you can start, skip and stop."
+    UpdateCultureHarvestsRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date-time
+                description: The date of the harvest.
+              quantity:
+                type: number
+                description: The quantity in pieces.
+              weight:
+                type: number
+                description: The weight in kilograms.
+              action:
+                type: string
+                enum:
+                  - add
+                  - remove
+                description: The action to perform against the harvests
+      description: Details about the update to make to the harvests. You can add or remove an harvest.
   responses:
     GetSeedResponse:
       description: A seed
